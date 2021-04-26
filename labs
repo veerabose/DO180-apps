@@ -1,4 +1,24 @@
 
+Day 1 : 
+
+Containers, Kubernetes, and Red Hat OpenShift Administration II
+
+Command
+------------
+podman inspect -l -f "{{.NetworkSettings.IPAddress}}"
+sudo podman run -e GREET=Hello -e NAME=RedHat rhel7:7.5 printenv GREET NAME
+sudo podman run --name mysql-basic -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55  -d rhscl/mysql-57-rhel7:5.7-3.14
+podman run --name mysql -d -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 rhscl/mysql-57-rhel7
+podman inspect -l -f "{{.NetworkSettings.IPAddress}}" mysql
+podman inspect  -f '{{ .NetworkSettings.IPAddress }}' mysql
+mysql -uuser1 -h 10.88.0.9 -pmypa55 items < /home/student/DO180/labs/manage-lifecycle/db.sql
+podman run --name mysql-2 -it rhscl/mysql-57-rhel7 /bin/bash
+podman exec mysql /bin/bash -c 'mysql -uuser1 -pmypa55 -e "select * from items.Projects;"'
+sudo semanage fcontext -a -t container_file_t '/var/local/mysql(/.*)?'
+podman run --name persist-db -d -v /var/local/mysql:/var/lib/mysql/data -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 rhscl/mysql-57-rhel7
+----------------------------------------------------------------------------------------------------------------------
+                                                              Day1
+--------------------------------------------------------------------------------------------------------------------
 [root@workstation ~]# podman images
 REPOSITORY   TAG   IMAGE ID   CREATED   SIZE
 [root@workstation ~]# podman search rhel |wc -l
