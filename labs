@@ -349,3 +349,56 @@ Completing the Guided Excercise: Managing a MySQL Container
  · Removing 'mysql-db' container...............................  SUCCESS
  · Removing 'rhscl/mysql-57-rhel7' image.......................  SUCCESS
 [root@workstation manage-lifecycle]# 
+
+Persisting a MySQL Database GE
+---------------------------------------------
+
+[root@workstation manage-lifecycle]# lab manage-storage start
+
+Setting up workstation for the Guided Exercise: Persisting a MySQL Database
+
+ · Checking podman configuration...............................  SUCCESS
+ · Check if the directory used by lab is not created...........  SUCCESS
+[root@workstation manage-lifecycle]# mkdir -pv /var/local/mysql
+mkdir: created directory '/var/local/mysql'
+[root@workstation manage-lifecycle]# semanage fcontext -a -t container_file_t '/var/local/mysql(/.*)?'
+[root@workstation manage-lifecycle]# restorecon -R /var/local/mysql
+[root@workstation manage-lifecycle]# ls -ldZ /var/local/mysql
+drwxr-xr-x. 2 root root unconfined_u:object_r:container_file_t:s0 6 Apr 26 08:08 /var/local/mysql
+[root@workstation manage-lifecycle]# chown -Rv 27:27 /var/local/mysql
+changed ownership of '/var/local/mysql' from root:root to 27:27
+[root@workstation manage-lifecycle]# grep -27 /etc/passwd
+^C
+[root@workstation manage-lifecycle]# grep 27 /etc/passwd
+[root@workstation manage-lifecycle]# chown -Rv 27:27 /var/local/mysql
+ownership of '/var/local/mysql' retained as 27:27
+[root@workstation manage-lifecycle]# podman pull rhscl/mysql-57-rhel7
+Trying to pull registry.access.redhat.com/rhscl/mysql-57-rhel7...
+Getting image source signatures
+Copying blob 9f1840c3b3bd done
+Copying blob 1c9f515fc6ab done
+Copying blob 1d2c4ce43b78 done
+Copying blob f1e961fe4c51 done
+Copying config 60726b33a0 done
+Writing manifest to image destination
+Storing signatures
+60726b33a00a2c3be60e25c3270a34a9b147db86602f05a71988a1c92a70cebc
+[root@workstation manage-lifecycle]# podman run --name persist-db -d -v /var/local/mysql:/var/lib/mysql/data -e MYSQL_USER=ser1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 rhscl/mysql-57-rhel7
+dca569a92d2090d536129c5f1c10d32d50dfeac88a79bc35abfc153e06670983
+[root@workstation manage-lifecycle]# podman ps
+CONTAINER ID  IMAGE                                                     COMMAND               CREATED         STATUS             PORTS  NAMES
+dca569a92d20  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest    run-mysqld            17 seconds ago  Up 16 seconds ago         persist-db
+e616daba9b17  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4-36.8  /usr/bin/run-http...  3 hours ago     Up 3 hours ago            admiring_yalow
+[root@workstation manage-lifecycle]# ls -ld /var/local/mysql/items
+drwxr-x---. 2 27 27 20 Apr 26 08:11 /var/local/mysql/items
+[root@workstation manage-lifecycle]# lab manage-storage finish
+
+Completing the Guided Exercise: Persisting a MySQL Database
+
+ · Stopping the 'persist-db' container.........................  SUCCESS
+ · Removing the 'persist-db' container.........................  SUCCESS
+ · Removing the 'rhscl/mysql-57-rhel7' image...................  SUCCESS
+ · Removing the /var/local/mysql directory.....................  SUCCESS
+ · Removing the fcontext for /var/local/mysql..................  SUCCESS
+[root@workstation manage-lifecycle]# 
+
