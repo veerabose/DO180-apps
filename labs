@@ -710,4 +710,122 @@ In this chapter, you learned:
      The podman exec command starts an additional process inside a running container.
       Podman maps local ports to container ports by using the -p option in the run subcommand
 
+----------------------------------
 
+Managing Container Images
+-------------------
+[root@workstation ~]# cat /etc/containers/registries.conf  | egrep -iv "^$|^#"
+[registries.search]
+registries = ["registry.access.redhat.com", "quay.io"]
+[registries.insecure]
+registries = []
+[registries.block]
+registries = []
+[root@workstation ~]# 
+
+
+
+
+
+
+[root@workstation ~]# podman pull quay.io/bitnami/nginx
+Trying to pull quay.io/bitnami/nginx...
+Getting image source signatures
+Copying blob 3cc1ae8ac7e0 done
+Copying blob 680ac188de57 done
+Copying blob 7c407192d104 done
+Copying blob d028c431b42f done
+Copying blob c8b0cda80cdd done
+Copying blob e469d990edd2 done
+Copying blob 3415682eecce done
+Copying blob 0e5f59de31e1 done
+Copying blob 751f8fc66768 done
+Copying blob 98ad34d09185 done
+Copying blob 1d26c215894a done
+Copying config b954db480d done
+Writing manifest to image destination
+Storing signatures
+b954db480d0984e2ed9c2bc3b470b5c973189b9b8e97e01d51c656920dd82062
+[root@workstation ~]# podman images
+REPOSITORY                                        TAG        IMAGE ID       CREATED         SIZE
+quay.io/bitnami/nginx                             latest     b954db480d09   2 days ago      93.4 MB
+registry.access.redhat.com/rhscl/httpd-24-rhel7   2.4        7f619078de75   6 weeks ago     329 MB
+registry.access.redhat.com/rhel                   latest     c61e4f9e8ada   6 weeks ago     216 MB
+registry.access.redhat.com/ubi7/ubi               7.7        0355cd652bd1   13 months ago   215 MB
+registry.access.redhat.com/rhel7                  7.5        7b875638cfd8   2 years ago     211 MB
+registry.access.redhat.com/rhscl/httpd-24-rhel7   2.4-36.8   5f9f898a3093   3 years ago     309 MB
+[root@workstation ~]# 
+[root@workstation ~]# podman pull rhscl/mysql-57-rhel7:5.7
+Trying to pull registry.access.redhat.com/rhscl/mysql-57-rhel7:5.7...
+Getting image source signatures
+Copying blob 1d2c4ce43b78 done
+Copying blob 1c9f515fc6ab done
+Copying blob 9f1840c3b3bd done
+Copying blob f1e961fe4c51 done
+Copying config 60726b33a0 done
+Writing manifest to image destination
+Storing signatures
+60726b33a00a2c3be60e25c3270a34a9b147db86602f05a71988a1c92a70cebc
+[root@workstation ~]# podman run rhscl/mysql-57-rhel7:5.7
+=> sourcing 20-validate-variables.sh ...
+You must either specify the following environment variables:
+  MYSQL_USER (regex: '^[a-zA-Z0-9_]+$')
+  MYSQL_PASSWORD (regex: '^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$')
+  MYSQL_DATABASE (regex: '^[a-zA-Z0-9_]+$')
+Or the following environment variable:
+  MYSQL_ROOT_PASSWORD (regex: '^[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]+$')
+Or both.
+Optional Settings:
+  MYSQL_LOWER_CASE_TABLE_NAMES (default: 0)
+  MYSQL_LOG_QUERIES_ENABLED (default: 0)
+  MYSQL_MAX_CONNECTIONS (default: 151)
+  MYSQL_FT_MIN_WORD_LEN (default: 4)
+  MYSQL_FT_MAX_WORD_LEN (default: 20)
+  MYSQL_AIO (default: 1)
+  MYSQL_KEY_BUFFER_SIZE (default: 32M or 10% of available memory)
+  MYSQL_MAX_ALLOWED_PACKET (default: 200M)
+  MYSQL_TABLE_OPEN_CACHE (default: 400)
+  MYSQL_SORT_BUFFER_SIZE (default: 256K)
+  MYSQL_READ_BUFFER_SIZE (default: 8M or 5% of available memory)
+  MYSQL_INNODB_BUFFER_POOL_SIZE (default: 32M or 50% of available memory)
+  MYSQL_INNODB_LOG_FILE_SIZE (default: 8M or 15% of available memory)
+  MYSQL_INNODB_LOG_BUFFER_SIZE (default: 8M or 15% of available memory)
+
+For more information, see https://github.com/sclorg/mysql-container
+[root@workstation ~]# podman save -o mysql.tar registry.access.redhat.com/rhscl/mysql-57-rhel7:5.7
+[root@workstation ~]# podman load -i mysql.tar
+Getting image source signatures
+Copying blob 21eb863ed592 skipped: already exists
+Copying blob 2cab4440f907 skipped: already exists
+Copying blob 64f2bd9f473b skipped: already exists
+Copying blob 682be05d59b2 skipped: already exists
+Copying config 60726b33a0 done
+Writing manifest to image destination
+Storing signatures
+Loaded image(s): registry.access.redhat.com/rhscl/mysql-57-rhel7:5.7
+[root@workstation ~]# podman images
+REPOSITORY                                        TAG        IMAGE ID       CREATED         SIZE
+quay.io/bitnami/nginx                             latest     b954db480d09   2 days ago      93.4 MB
+registry.access.redhat.com/rhscl/httpd-24-rhel7   2.4        7f619078de75   6 weeks ago     329 MB
+registry.access.redhat.com/rhel                   latest     c61e4f9e8ada   6 weeks ago     216 MB
+registry.access.redhat.com/ubi7/ubi               7.7        0355cd652bd1   13 months ago   215 MB
+registry.access.redhat.com/rhscl/mysql-57-rhel7   5.7        60726b33a00a   18 months ago   448 MB
+registry.access.redhat.com/rhel7                  7.5        7b875638cfd8   2 years ago     211 MB
+registry.access.redhat.com/rhscl/httpd-24-rhel7   2.4-36.8   5f9f898a3093   3 years ago     309 MB
+[root@workstation ~]# 
+
+
+[root@workstation ~]# podman images
+REPOSITORY                            TAG      IMAGE ID       CREATED          SIZE
+localhost/do180-custom-httpd          latest   c5612e867fd5   11 seconds ago   236 MB
+quay.io/redhattraining/httpd-parent   latest   4346d3cace25   22 months ago    236 MB
+[root@workstation ~]# source /usr/local/etc/ocp4.config
+[root@workstation ~]# podman images
+REPOSITORY                            TAG      IMAGE ID       CREATED          SIZE
+localhost/do180-custom-httpd          latest   c5612e867fd5   41 seconds ago   236 MB
+quay.io/redhattraining/httpd-parent   latest   4346d3cace25   22 months ago    236 MB
+[root@workstation ~]# podman tag do180-custom-httpd quay.io/${RHT_OCP4_QUAY_USER}/do180-custom-httpd:v1.0
+Error: error adding 'quay.io//do180-custom-httpd:v1.0' to image "do180-custom-httpd": invalid reference format
+[root@workstation ~]# podman tag localhost/do180-custom-httpd quay.io/${RHT_OCP4_QUAY_USER}/do180-custom-httpd:v1.0
+Error: error adding 'quay.io//do180-custom-httpd:v1.0' to image "localhost/do180-custom-httpd": invalid reference format
+[root@workstation ~]#
