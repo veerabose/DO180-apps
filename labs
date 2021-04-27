@@ -424,6 +424,8 @@ Completing the Guided Exercise: Persisting a MySQL Database
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                                           Day2
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+GE
+--
 [root@workstation ~]# lab manage-networking start
 
 Setting up workstation for the Guided Exercise: Loading the Database
@@ -501,6 +503,201 @@ Completing the Guided Exercise: Loading the Database
  · Removing the /var/local/mysql directory.....................  SUCCESS
  · Removing the fcontext for /var/local/mysql..................  SUCCESS
 [root@workstation ~]# 
+
+LAB Managing Containers
+----------------------------
+[root@workstation ~]# lab manage-review start
+
+Setting up workstation for the Lab: Managing Containers
+
+ · Checking podman configuration...............................  SUCCESS
+ · Check that /var/local/mysql does not exist..................  SUCCESS
+ · Downloading starter project.................................  SUCCESS
+ · Downloading solution project................................  SUCCESS
+
+Setup successful. Please proceed with the exercise.
+
+[root@workstation ~]# mkdir -pv /var/local/mysql
+mkdir: created directory '/var/local/mysql'
+[root@workstation ~]# ls -ld /var/local/mysql
+drwxr-xr-x. 2 root root 6 Apr 26 22:00 /var/local/mysql
+[root@workstation ~]# ls -lZd /var/local/mysql
+drwxr-xr-x. 2 root root unconfined_u:object_r:var_t:s0 6 Apr 26 22:00 /var/local/mysql
+[root@workstation ~]# semanage fcontext -a  -t container_file_t '/var/local/mysql(/.*)?'
+[root@workstation ~]# ls -lZd /var/local/mysql
+drwxr-xr-x. 2 root root unconfined_u:object_r:var_t:s0 6 Apr 26 22:00 /var/local/mysql
+[root@workstation ~]# restorecon -R /var/local/mysql
+[root@workstation ~]# ls -lZd /var/local/mysql
+drwxr-xr-x. 2 root root unconfined_u:object_r:container_file_t:s0 6 Apr 26 22:00 /var/local/mysql
+[root@workstation ~]# chown -Rv 27:27 /var/local/mysql
+changed ownership of '/var/local/mysql' from root:root to 27:27
+[root@workstation ~]# podman run --name mysql-1 -d -v /var/local/mysql:/var/lib/mysql/data  -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 rhscl/mysql-57-rhel7
+Trying to pull registry.access.redhat.com/rhscl/mysql-57-rhel7...
+Getting image source signatures
+Copying blob 1c9f515fc6ab done
+Copying blob 9f1840c3b3bd done
+Copying blob f1e961fe4c51 done
+Copying blob 1d2c4ce43b78 done
+Copying config 60726b33a0 done
+Writing manifest to image destination
+Storing signatures
+9caca5d1ac777ea8dea764fbd3507fcadad22a32e39b59e298b6ef8682083f16
+[root@workstation ~]# podman ps
+CONTAINER ID  IMAGE                                                   COMMAND               CREATED         STATUS             PORTS                    NAMES
+9caca5d1ac77  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            10 seconds ago  Up 9 seconds ago                            mysql-1
+84cbde5855cf  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  16 minutes ago  Up 16 minutes ago  0.0.0.0:39021->80/tcp    apache4
+ebaef6662f91  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  18 minutes ago  Up 18 minutes ago  127.0.0.1:46057->80/tcp  apache3
+052aa7f00ae2  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  20 minutes ago  Up 20 minutes ago  127.0.0.1:8081->80/tcp   apache2
+[root@workstation ~]# podman inspect mysql-1 | grep -i ipaddress
+            "SecondaryIPAddresses": null,
+            "IPAddress": "10.88.0.16",
+[root@workstation ~]# cat /home/student/DO180/labs/manage-review/db.sql
+CREATE TABLE `Item` (`id` BIGINT not null auto_increment primary key, `description` VARCHAR(100), `done` INT);
+INSERT INTO `Item` (`id`,`description`,`done`) VALUES (1,'Pick up newspaper', 0);
+INSERT INTO `Item` (`id`,`description`,`done`) VALUES (2,'Buy groceries', 1);
+[root@workstation ~]# ls -ld /var/local/mysql/items
+drwxr-x---. 2 27 27 20 Apr 26 22:05 /var/local/mysql/items
+[root@workstation ~]# mysql -uuser1 -h 10.88.0.16 -pmypa55 items < /home/student/DO180/labs/manage-review/db.sql
+[root@workstation ~]# mysql -uuser1 -h 10.88.0.16 -pmypa55 items -e "SELECT * FROM Item"
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+[root@workstation ~]# podman stop mysql-1
+9caca5d1ac777ea8dea764fbd3507fcadad22a32e39b59e298b6ef8682083f16
+[root@workstation ~]# podman ps
+CONTAINER ID  IMAGE                                                COMMAND               CREATED         STATUS             PORTS                    NAMES
+84cbde5855cf  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4  /usr/bin/run-http...  20 minutes ago  Up 20 minutes ago  0.0.0.0:39021->80/tcp    apache4
+ebaef6662f91  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4  /usr/bin/run-http...  21 minutes ago  Up 21 minutes ago  127.0.0.1:46057->80/tcp  apache3
+052aa7f00ae2  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4  /usr/bin/run-http...  24 minutes ago  Up 24 minutes ago  127.0.0.1:8081->80/tcp   apache2
+[root@workstation ~]# podman run --name mysql-2 -d -v /var/local/mysql:/var/lib/mysql/data  -p 13306:3306 -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55 rhscl/mysql-57-rhel7
+9cba105407c4a301f972a334b69562523e0d26d2ab915a7efc44c51944e377a9
+[root@workstation ~]# podman ps
+CONTAINER ID  IMAGE                                                   COMMAND               CREATED         STATUS             PORTS                    NAMES
+9cba105407c4  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            4 seconds ago   Up 3 seconds ago   0.0.0.0:13306->3306/tcp  mysql-2
+84cbde5855cf  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  21 minutes ago  Up 21 minutes ago  0.0.0.0:39021->80/tcp    apache4
+ebaef6662f91  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  22 minutes ago  Up 22 minutes ago  127.0.0.1:46057->80/tcp  apache3
+052aa7f00ae2  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  25 minutes ago  Up 25 minutes ago  127.0.0.1:8081->80/tcp   apache2
+[root@workstation ~]# podman exec -it mysql-2 /bin/bash
+bash-4.2$ 
+bash-4.2$ mysql -uroot
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 2
+Server version: 5.7.24 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| items              |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+mysql> use items;
+Database changed
+mysql> show tables;
++-----------------+
+| Tables_in_items |
++-----------------+
+| Item            |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM Item;
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+2 rows in set (0.00 sec)
+
+mysql> exit
+Bye
+bash-4.2$ exit
+exit
+[root@workstation ~]# mysql -uuser1 -h workstation.lab.example.com -pmypa55 -P13306 items
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 3
+Server version: 5.7.24 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [items]> insert into Item (description, done) values ('Finished lab', 1);
+Query OK, 1 row affected (0.016 sec)
+
+MySQL [items]> SELECT * FROM Item;
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
+|  3 | Finished lab      |    1 |
++----+-------------------+------+
+3 rows in set (0.002 sec)
+
+MySQL [items]> exit
+Bye
+[root@workstation ~]# podman ps 
+CONTAINER ID  IMAGE                                                   COMMAND               CREATED         STATUS             PORTS                    NAMES
+9cba105407c4  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            4 minutes ago   Up 4 minutes ago   0.0.0.0:13306->3306/tcp  mysql-2
+84cbde5855cf  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  25 minutes ago  Up 25 minutes ago  0.0.0.0:39021->80/tcp    apache4
+ebaef6662f91  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  26 minutes ago  Up 26 minutes ago  127.0.0.1:46057->80/tcp  apache3
+052aa7f00ae2  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  29 minutes ago  Up 29 minutes ago  127.0.0.1:8081->80/tcp   apache2
+[root@workstation ~]# podman stop apache4 apache2 apache3 
+84cbde5855cfb07aca5b4af1d7084f10bebe890c7bed56c20ed30c4942b71e9b
+052aa7f00ae2726f47f6bbf9cf12c43e864053df64947f35e25e5b55f729ae35
+ebaef6662f91d688e9eaf62662271003095c2ac560a32f086c9ac6a954aad519
+[root@workstation ~]# podman rm apache4 apache2  apache3 
+84cbde5855cfb07aca5b4af1d7084f10bebe890c7bed56c20ed30c4942b71e9b
+052aa7f00ae2726f47f6bbf9cf12c43e864053df64947f35e25e5b55f729ae35
+ebaef6662f91d688e9eaf62662271003095c2ac560a32f086c9ac6a954aad519
+[root@workstation ~]# podman ps 
+CONTAINER ID  IMAGE                                                   COMMAND     CREATED        STATUS            PORTS                    NAMES
+9cba105407c4  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld  5 minutes ago  Up 5 minutes ago  0.0.0.0:13306->3306/tcp  mysql-2
+[root@workstation ~]# podman ps -a
+CONTAINER ID  IMAGE                                                     COMMAND               CREATED         STATUS                    PORTS                    NAMES
+9cba105407c4  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest    run-mysqld            5 minutes ago   Up 5 minutes ago          0.0.0.0:13306->3306/tcp  mysql-2
+9caca5d1ac77  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest    run-mysqld            10 minutes ago  Exited (0) 6 minutes ago                           mysql-1
+96b6a5462d16  registry.access.redhat.com/rhel7:7.5                      printenv GREET NA...  17 hours ago    Exited (0) 17 hours ago                            thirsty_feynman
+6ea278959c61  registry.access.redhat.com/ubi7/ubi:7.7                   /bin/bash             17 hours ago    Exited (0) 17 hours ago                            dreamy_brattain
+de89ca6ca57e  registry.access.redhat.com/ubi7/ubi:7.7                   /bin/bash             17 hours ago    Exited (0) 17 hours ago                            sad_yalow
+e616daba9b17  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4-36.8  /usr/bin/run-http...  17 hours ago    Exited (0) 11 hours ago                            admiring_yalow
+ca7d6f42db1c  registry.access.redhat.com/ubi7/ubi:7.7                   echo Hello!           17 hours ago    Exited (0) 17 hours ago                            nifty_torvalds
+[root@workstation ~]# podman ps -a > /tmp/my-containers
+[root@workstation ~]# lab manage-review finish
+
+Completing the Lab: Managing Containers
+
+ · Removing the /var/local/mysql folder........................  SUCCESS
+ · Removing the fcontext for /var/local/mysql..................  SUCCESS
+ · Stopping mysql-1 container..................................  SUCCESS
+ · Removing mysql-1 container..................................  SUCCESS
+ · Stopping mysql-2 container..................................  SUCCESS
+ · Removing mysql-2 container..................................  SUCCESS
+ · Removing MySQL container image..............................  SUCCESS
+ · Removing temporary file.....................................  SUCCESS
+[root@workstation ~]# 
+
 
 
 
