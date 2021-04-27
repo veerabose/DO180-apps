@@ -421,4 +421,86 @@ Completing the Guided Exercise: Persisting a MySQL Database
  · Removing the /var/local/mysql directory.....................  SUCCESS
  · Removing the fcontext for /var/local/mysql..................  SUCCESS
 [root@workstation manage-lifecycle]# 
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                          Day2
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+[root@workstation ~]# lab manage-networking start
+
+Setting up workstation for the Guided Exercise: Loading the Database
+
+ · Checking podman configuration...............................  SUCCESS
+ · Creating a host directory for the database container:
+   · Adding fcontext policy for /var/local/mysql...............  SUCCESS
+   · Creating the /var/local/mysql directory...................  SUCCESS
+   · Apply fcontext policy to /var/local/mysql.................  SUCCESS
+ · Downloading starter project.................................  SUCCESS
+ · Downloading solution project................................  SUCCESS
+
+Setup successful. Please proceed with the exercise.
+
+
+[root@workstation ~]# podman run --name mysqldb-port -d -v /var/local/mysql:/var/lib/mysql/data -p 13306:3306 -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=items -e MYSQL_ROOT_PASSWORD=r00tpa55  rhscl/mysql-57-rhel7
+Trying to pull registry.access.redhat.com/rhscl/mysql-57-rhel7...
+Getting image source signatures
+Copying blob 1c9f515fc6ab done
+Copying blob 9f1840c3b3bd done
+Copying blob 1d2c4ce43b78 done
+Copying blob f1e961fe4c51 done
+Copying config 60726b33a0 done
+Writing manifest to image destination
+Storing signatures
+b5e9fa7167a7dabf0a6fd25b393f7573dfeccd1bd28976b3097b2e7f76aa568b
+[root@workstation ~]# podman ps
+CONTAINER ID  IMAGE                                                   COMMAND               CREATED        STATUS            PORTS                    NAMES
+b5e9fa7167a7  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            6 seconds ago  Up 6 seconds ago  0.0.0.0:13306->3306/tcp  mysqldb-port
+84cbde5855cf  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  4 minutes ago  Up 4 minutes ago  0.0.0.0:39021->80/tcp    apache4
+ebaef6662f91  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  6 minutes ago  Up 6 minutes ago  127.0.0.1:46057->80/tcp  apache3
+052aa7f00ae2  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  8 minutes ago  Up 8 minutes ago  127.0.0.1:8081->80/tcp   apache2
+[root@workstation ~]# cat /home/student/DO180/labs/manage-networking/db.sql
+CREATE TABLE `Item` (`id` BIGINT not null auto_increment primary key, `description` VARCHAR(100), `done` INT);
+INSERT INTO `Item` (`id`,`description`,`done`) VALUES (1,'Pick up newspaper', 0);
+INSERT INTO `Item` (`id`,`description`,`done`) VALUES (2,'Buy groceries', 1);
+[root@workstation ~]# mysql -uuser1 -h 127.0.0.1 -pmypa55 -P13306 items < /home/student/DO180/labs/manage-networking/db.sql
+[root@workstation ~]# podman exec -it mysqldb-port /opt/rh/rh-mysql57/root/usr/bin/mysql -uroot items -e "SELECT * FROM Item"
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+[root@workstation ~]# mysql -uuser1 -h 127.0.0.1 -pmypa55  -P13306 items -e "SELECT * FROM Item"
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+[root@workstation ~]# podman exec -it mysqldb-port /bin/bash
+bash-4.2$ mysql -uroot items -e "SELECT * FROM Item"
++----+-------------------+------+
+| id | description       | done |
++----+-------------------+------+
+|  1 | Pick up newspaper |    0 |
+|  2 | Buy groceries     |    1 |
++----+-------------------+------+
+bash-4.2$ exit
+exit
+[root@workstation ~]# podman ps
+CONTAINER ID  IMAGE                                                   COMMAND               CREATED         STATUS             PORTS                    NAMES
+b5e9fa7167a7  registry.access.redhat.com/rhscl/mysql-57-rhel7:latest  run-mysqld            3 minutes ago   Up 3 minutes ago   0.0.0.0:13306->3306/tcp  mysqldb-port
+84cbde5855cf  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  8 minutes ago   Up 8 minutes ago   0.0.0.0:39021->80/tcp    apache4
+ebaef6662f91  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  9 minutes ago   Up 9 minutes ago   127.0.0.1:46057->80/tcp  apache3
+052aa7f00ae2  registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4     /usr/bin/run-http...  12 minutes ago  Up 12 minutes ago  127.0.0.1:8081->80/tcp   apache2
+[root@workstation ~]# lab manage-networking finish
+
+Completing the Guided Exercise: Loading the Database
+
+ · Stopping the 'mysqldb-port' container.......................  SUCCESS
+ · Removing the 'mysqldb-port' container.......................  SUCCESS
+ · Removing the 'rhscl/mysql-57-rhel7' image...................  SUCCESS
+ · Removing the /var/local/mysql directory.....................  SUCCESS
+ · Removing the fcontext for /var/local/mysql..................  SUCCESS
+[root@workstation ~]# 
+
+
 
