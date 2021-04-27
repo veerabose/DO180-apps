@@ -1090,4 +1090,17 @@ Grading the student's work for the Lab: Managing Images
 [root@workstation ~]# 
 
 
+Summary
+------------
+In this chapter, you learned:
+ The Red Hat Container Catalog provides tested and certified images at
+ registry.redhat.io.
+  Podman can interact with remote container registries to search, pull, and push container images.
+   Imae tags are a mechanism to support multiple releases of a container image.
+    Podman provides commands to manage container images both in local storage and as
+    compressed files.
+     Use the podman commit to create an image from a container.
+     
+-------------------------------------------------------------------
+
 
