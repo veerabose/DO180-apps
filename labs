@@ -2578,3 +2578,64 @@ container image that runs the assembled application.
 IP. While services allow for network access between pods inside an OpenShift instance, routes
 allow for network access to pods from users and applications outside the OpenShift instance.
 
+
+[student@workstation ~]$ oc new-app --as-deployment-config java https://github.com/veerabose/mvnarcheweb.git --name mvnarch
+--> Found image 07ffff2 (9 months old) in image stream "openshift/java" under tag "11" for "java"
+
+    Java Applications 
+    ----------------- 
+    Platform for building and running plain Java applications (fat-jar and flat classpath)
+
+    Tags: builder, java
+
+    * The source repository appears to match: jee
+    * A source build using source code from https://github.com/veerabose/mvnarcheweb.git will be created
+      * The resulting image will be pushed to image stream tag "mvnarch:latest"
+      * Use 'oc start-build' to trigger a new build
+    * This image will be deployed in deployment config "mvnarch"
+    * Ports 8080/tcp, 8443/tcp, 8778/tcp will be load balanced by service "mvnarch"
+      * Other containers can access this service through the hostname "mvnarch"
+
+--> Creating resources ...
+    imagestream.image.openshift.io "mvnarch" created
+    buildconfig.build.openshift.io "mvnarch" created
+    deploymentconfig.apps.openshift.io "mvnarch" created
+    service "mvnarch" created
+--> Success
+    Build scheduled, use 'oc logs -f bc/mvnarch' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose svc/mvnarch' 
+    Run 'oc status' to view your app.
+[student@workstation ~]$ 
+[student@workstation ~]$ oc get all
+NAME                   READY   STATUS             RESTARTS   AGE
+pod/mvnarch-1-build    0/1     Completed          0          2m31s
+pod/mvnarch-1-deploy   0/1     Completed          0          55s
+pod/mvnarch-1-m57lt    0/1     CrashLoopBackOff   2          52s
+
+NAME                              DESIRED   CURRENT   READY   AGE
+replicationcontroller/mvnarch-1   1         1         0       55s
+
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+service/mvnarch   ClusterIP   172.30.239.129   <none>        8080/TCP,8443/TCP,8778/TCP   2m31s
+
+NAME                                         REVISION   DESIRED   CURRENT   TRIGGERED BY
+deploymentconfig.apps.openshift.io/mvnarch   1          1         1         config,image(mvnarch:latest)
+
+NAME                                     TYPE     FROM   LATEST
+buildconfig.build.openshift.io/mvnarch   Source   Git    1
+
+NAME                                 TYPE     FROM          STATUS     STARTED         DURATION
+build.build.openshift.io/mvnarch-1   Source   Git@6872459   Complete   2 minutes ago   1m36s
+
+NAME                                     IMAGE REPOSITORY                                                         TAGS     UPDATED
+imagestream.image.openshift.io/mvnarch   image-registry.openshift-image-registry.svc:5000/developer-mvn/mvnarch   latest   56 seconds ago
+[student@workstation ~]$ oc get pod
+NAME               READY   STATUS             RESTARTS   AGE
+mvnarch-1-build    0/1     Completed          0          2m54s
+mvnarch-1-deploy   0/1     Completed          0          78s
+mvnarch-1-m57lt    0/1     CrashLoopBackOff   3          75s
+[student@workstation ~]$ 
+
+
+
