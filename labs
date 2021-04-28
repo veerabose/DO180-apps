@@ -2225,12 +2225,23 @@ print "A change is a coming!\n";
 ?>
 [student@workstation php-helloworld]$ git add .
 [student@workstation php-helloworld]$ git commit -m 'Changed index page contents.'
-[s2i 571ca5c] Changed index page contents.
- 1 file changed, 1 insertion(+)
+On branch s2i
+Your branch is ahead of 'origin/s2i' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+[student@workstation php-helloworld]$ git push origin s2i
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (4/4), 420 bytes | 420.00 KiB/s, done.
+Total 4 (delta 1), reused 0 (delta 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/veerabose/DO180-apps
+   b7266de..571ca5c  s2i -> s2i
 [student@workstation php-helloworld]$ oc start-build php-helloworld
-build.build.openshift.io/php-helloworld-2 started
-[student@workstation php-helloworld]$ oc logs php-helloworld-2-build -f
-Error from server (BadRequest): container "sti-build" in pod "php-helloworld-2-build" is waiting to start: PodInitializing
+build.build.openshift.io/php-helloworld-3 started
 [student@workstation php-helloworld]$ oc logs php-helloworld-2-build -f
 Caching blobs under "/var/cache/blobs".
 Getting image source signatures
@@ -2288,43 +2299,22 @@ Storing signatures
 Successfully pushed image-registry.openshift-image-registry.svc:5000/developer-s2i/php-helloworld@sha256:fd2e449b55a989f3cce172e2cdcea438cf7fd37114f7e8db9dd371e935f0133f
 Push successful
 [student@workstation php-helloworld]$ oc get pods
-NAME                      READY   STATUS              RESTARTS   AGE
-php-helloworld-1-build    0/1     Completed           0          6m6s
-php-helloworld-1-deploy   0/1     Completed           0          5m28s
-php-helloworld-1-tzmfc    1/1     Running             0          5m25s
-php-helloworld-2-6mhtt    0/1     ContainerCreating   0          7s
-php-helloworld-2-build    0/1     Completed           0          46s
-php-helloworld-2-deploy   1/1     Running             0          11s
-[student@workstation php-helloworld]$ oc get pods -w
-NAME                      READY   STATUS        RESTARTS   AGE
-php-helloworld-1-build    0/1     Completed     0          6m15s
-php-helloworld-1-deploy   0/1     Completed     0          5m37s
-php-helloworld-1-tzmfc    1/1     Terminating   0          5m34s
-php-helloworld-2-6mhtt    1/1     Running       0          16s
-php-helloworld-2-build    0/1     Completed     0          55s
-php-helloworld-2-deploy   1/1     Running       0          20s
-php-helloworld-1-tzmfc    0/1     Terminating   0          5m35s
-php-helloworld-2-deploy   0/1     Completed     0          22s
-php-helloworld-1-tzmfc    0/1     Terminating   0          5m36s
-php-helloworld-1-tzmfc    0/1     Terminating   0          5m36s
-^C[student@workstation php-helloworld]$ oc get pods
 NAME                      READY   STATUS      RESTARTS   AGE
-php-helloworld-1-build    0/1     Completed   0          6m25s
-php-helloworld-1-deploy   0/1     Completed   0          5m47s
-php-helloworld-2-6mhtt    1/1     Running     0          26s
-php-helloworld-2-build    0/1     Completed   0          65s
-php-helloworld-2-deploy   0/1     Completed   0          30s
+php-helloworld-1-build    0/1     Completed   0          16m
+php-helloworld-1-deploy   0/1     Completed   0          15m
+php-helloworld-2-6mhtt    1/1     Running     0          10m
+php-helloworld-2-build    0/1     Completed   0          10m
+php-helloworld-2-deploy   0/1     Completed   0          10m
+php-helloworld-3-build    1/1     Running     0          30s
 [student@workstation php-helloworld]$ curl -s  ${RHT_OCP4_DEV_USER}-helloworld-${RHT_OCP4_DEV_USER}-s2i.${RHT_OCP4_WILDCARD_DOMAIN}
 Hello, World! php version is 7.3.11
-[student@workstation php-helloworld]$
+A change is a coming!
+[student@workstation php-helloworld]$ 
+[student@workstation php-helloworld]$ lab openshift-s2i finish
 
+Completing the Guided Excercise: Creating a Containerized Application with Source-to-Image
 
+ · Log in on OpenShift.........................................  SUCCESS
+ · Deleting the 'developer-s2i' project........................  SUCCESS
+[student@workstation php-helloworld]$ 
 
-
-
-
-
-
-
-
- 
