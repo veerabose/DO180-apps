@@ -1484,7 +1484,8 @@ Grading the student's work for Lab: Creating Custom Container Images
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                           Day3
- ----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------							  
+ ---------------------------------------------------CH-6-GE-Deploying a Database Server on OpenShift---------------------------------------
  [student@workstation ~]$ lab openshift-resources start
 
 Setting up workstation for the Guided Exercise: Deploying a Database Server on OpenShift
@@ -1536,9 +1537,6 @@ to build a new example application in Ruby. Or use kubectl to deploy a simple Ku
 
     kubectl create deployment hello-node --image=gcr.io/hello-minikube-zero-install/hello-node
 
-[student@workstation ~]$ oc delete-project developer-ysql-openshift
-Error: unknown command "delete-project" for "oc"
-Run 'oc --help' for usage.
 [student@workstation ~]$ oc new-app --as-deployment-config --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest --name=mysql-openshift -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb  -e MYSQL_ROOT_PASSWORD=r00tpa55
 --> Found container image 60726b3 (18 months old) from registry.access.redhat.com for "registry.access.redhat.com/rhscl/mysql-57-rhel7:latest"
 
@@ -1588,8 +1586,6 @@ View details with 'oc describe <resource>/<name>' or list everything with 'oc ge
 NAME                       READY   STATUS      RESTARTS   AGE
 mysql-openshift-1-7skrj    1/1     Running     0          94s
 mysql-openshift-1-deploy   0/1     Completed   0          97s
-[student@workstation ~]$ oc describe mysql-openshift-1-7skrj
-error: the server doesn't have a resource type "mysql-openshift-1-7skrj"
 [student@workstation ~]$ oc describe pod mysql-openshift-1-7skrj
 Name:         mysql-openshift-1-7skrj
 Namespace:    developer-mysql-openshift
@@ -1734,7 +1730,7 @@ Events:
   Type		Reason			Age	From				Message
   ----		------			----	----				-------
   Normal	DeploymentCreated	4m43s	deploymentconfig-controller	Created new replication controller "mysql-openshift-1" for version 1
-[student@workstation ~]$ [student@workstation ~]$ oc expose service mysql-openshift
+[student@workstation ~]$ oc expose service mysql-openshift
 route.route.openshift.io/mysql-openshift exposed
 [student@workstation ~]$ oc get routes
 NAME              HOST/PORT                                                         PATH   SERVICES          PORT       TERMINATION   WILDCARD
@@ -1782,6 +1778,7 @@ Completing the Guided Exercise: Deploying a Database Server on OpenShift
 [student@workstation ~]$ 
 
 ---------------------------------------CH6-GE-Exposing a Service as a Route-------------------------------------------
+
 [student@workstation ~]$ lab openshift-routes start
 
 Setting up workstation for the Guided Exercise: Exposing a Service as a Route
