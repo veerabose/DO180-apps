@@ -1,5 +1,6 @@
-
+-------------------------------------------------------------------
 Day 1 : 
+---------------------------------------------------------------------
 
 Containers, Kubernetes, and Red Hat OpenShift Administration II
 
@@ -1481,3 +1482,307 @@ Grading the student's work for Lab: Creating Custom Container Images
 
 [root@workstation dockerfile-review]# 
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                          Day3
+ ----------------------------------------------------------------------------------------------------------------------
+ [student@workstation ~]$ lab openshift-resources start
+
+Setting up workstation for the Guided Exercise: Deploying a Database Server on OpenShift
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check master node master01 is ready.........................  SUCCESS
+ · Check master node master02 is ready.........................  SUCCESS
+ · Check master node master03 is ready.........................  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ · Ensuring the 'developer-mysql-openshift' project is absent..  SUCCESS
+[student@workstation ~]$ source /usr/local/etc/ocp4.config
+[student@workstation ~]$ cat !$
+cat /usr/local/etc/ocp4.config
+RHT_OCP4_MASTER_API=https://api.ocp4.example.com:6443
+RHT_OCP4_WILDCARD_DOMAIN=apps.ocp4.example.com
+RHT_OCP4_NEXUS_SERVER=nexus-common.apps.ocp4.example.com
+RHT_OCP4_DEV_USER=developer
+RHT_OCP4_DEV_PASSWORD=developer
+RHT_OCP4_GITHUB_USER=veerabose
+RHT_OCP4_QUAY_USER=veeraabose
+RHT_OCP4_USER_PASSWD=redhat
+[student@workstation ~]$ oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You don't have any projects. You can try to create a new project, by running
+
+    oc new-project <projectname>
+
+[student@workstation ~]$ oc new-project ${RHT_OCP4_DEV_USER}-ysql-openshift
+Now using project "developer-ysql-openshift" on server "https://api.ocp4.example.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app ruby~https://github.com/sclorg/ruby-ex.git
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=gcr.io/hello-minikube-zero-install/hello-node
+
+[student@workstation ~]$ oc new-project ${RHT_OCP4_DEV_USER}-mysql-openshift
+Now using project "developer-mysql-openshift" on server "https://api.ocp4.example.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app ruby~https://github.com/sclorg/ruby-ex.git
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=gcr.io/hello-minikube-zero-install/hello-node
+
+[student@workstation ~]$ oc delete-project developer-ysql-openshift
+Error: unknown command "delete-project" for "oc"
+Run 'oc --help' for usage.
+[student@workstation ~]$ oc new-app --as-deployment-config --docker-image=registry.access.redhat.com/rhscl/mysql-57-rhel7:latest --name=mysql-openshift -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb  -e MYSQL_ROOT_PASSWORD=r00tpa55
+--> Found container image 60726b3 (18 months old) from registry.access.redhat.com for "registry.access.redhat.com/rhscl/mysql-57-rhel7:latest"
+
+    MySQL 5.7 
+    --------- 
+    MySQL is a multi-user, multi-threaded SQL database server. The container image provides a containerized packaging of the MySQL mysqld daemon and client application. The mysqld server daemon accepts connections from clients and provides access to content from MySQL databases on behalf of the clients.
+
+    Tags: database, mysql, mysql57, rh-mysql57
+
+    * An image stream tag will be created as "mysql-openshift:latest" that will track this image
+    * This image will be deployed in deployment config "mysql-openshift"
+    * Port 3306/tcp will be load balanced by service "mysql-openshift"
+      * Other containers can access this service through the hostname "mysql-openshift"
+
+--> Creating resources ...
+    imagestream.image.openshift.io "mysql-openshift" created
+    deploymentconfig.apps.openshift.io "mysql-openshift" created
+    service "mysql-openshift" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose svc/mysql-openshift' 
+    Run 'oc status' to view your app.
+[student@workstation ~]$ oc status
+In project developer-mysql-openshift on server https://api.ocp4.example.com:6443
+
+svc/mysql-openshift - 172.30.40.2:3306
+  dc/mysql-openshift deploys istag/mysql-openshift:latest 
+    deployment #1 deployed 33 seconds ago - 1 pod
+
+
+2 infos identified, use 'oc status --suggest' to see details.
+[student@workstation ~]$ oc status --suggest
+In project developer-mysql-openshift on server https://api.ocp4.example.com:6443
+
+svc/mysql-openshift - 172.30.40.2:3306
+  dc/mysql-openshift deploys istag/mysql-openshift:latest 
+    deployment #1 deployed about a minute ago - 1 pod
+
+Info:
+  * dc/mysql-openshift has no readiness probe to verify pods are ready to accept traffic or ensure deployment is successful.
+    try: oc set probe dc/mysql-openshift --readiness ...
+  * dc/mysql-openshift has no liveness probe to verify pods are still running.
+    try: oc set probe dc/mysql-openshift --liveness ...
+
+View details with 'oc describe <resource>/<name>' or list everything with 'oc get all'.
+[student@workstation ~]$ oc get pods
+NAME                       READY   STATUS      RESTARTS   AGE
+mysql-openshift-1-7skrj    1/1     Running     0          94s
+mysql-openshift-1-deploy   0/1     Completed   0          97s
+[student@workstation ~]$ oc describe mysql-openshift-1-7skrj
+error: the server doesn't have a resource type "mysql-openshift-1-7skrj"
+[student@workstation ~]$ oc describe pod mysql-openshift-1-7skrj
+Name:         mysql-openshift-1-7skrj
+Namespace:    developer-mysql-openshift
+Priority:     0
+Node:         master01/192.168.50.10
+Start Time:   Tue, 27 Apr 2021 21:35:22 -0400
+Labels:       deployment=mysql-openshift-1
+              deploymentconfig=mysql-openshift
+Annotations:  k8s.v1.cni.cncf.io/network-status:
+                [{
+                    "name": "openshift-sdn",
+                    "interface": "eth0",
+                    "ips": [
+                        "10.10.0.35"
+                    ],
+                    "default": true,
+                    "dns": {}
+                }]
+              k8s.v1.cni.cncf.io/networks-status:
+                [{
+                    "name": "openshift-sdn",
+                    "interface": "eth0",
+                    "ips": [
+                        "10.10.0.35"
+                    ],
+                    "default": true,
+                    "dns": {}
+                }]
+              openshift.io/deployment-config.latest-version: 1
+              openshift.io/deployment-config.name: mysql-openshift
+              openshift.io/deployment.name: mysql-openshift-1
+              openshift.io/generated-by: OpenShiftNewApp
+              openshift.io/scc: restricted
+Status:       Running
+IP:           10.10.0.35
+IPs:
+  IP:           10.10.0.35
+Controlled By:  ReplicationController/mysql-openshift-1
+Containers:
+  mysql-openshift:
+    Container ID:   cri-o://e142126b4f21eaa36587be4de46a69ed71341015328879d456afc1e432eccbc4
+    Image:          registry.access.redhat.com/rhscl/mysql-57-rhel7@sha256:9a781abe7581cc141e14a7e404ec34125b3e89c008b14f4e7b41e094fd3049fe
+    Image ID:       registry.access.redhat.com/rhscl/mysql-57-rhel7@sha256:9a781abe7581cc141e14a7e404ec34125b3e89c008b14f4e7b41e094fd3049fe
+    Port:           3306/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 27 Apr 2021 21:35:35 -0400
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_DATABASE:       testdb
+      MYSQL_PASSWORD:       mypa55
+      MYSQL_ROOT_PASSWORD:  r00tpa55
+      MYSQL_USER:           user1
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-f4x2f (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  default-token-f4x2f:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-f4x2f
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason          Age    From               Message
+  ----    ------          ----   ----               -------
+  Normal  Scheduled       3m13s  default-scheduler  Successfully assigned developer-mysql-openshift/mysql-openshift-1-7skrj to master01
+  Normal  AddedInterface  3m11s  multus             Add eth0 [10.10.0.35/23]
+  Normal  Pulling         3m11s  kubelet, master01  Pulling image "registry.access.redhat.com/rhscl/mysql-57-rhel7@sha256:9a781abe7581cc141e14a7e404ec34125b3e89c008b14f4e7b41e094fd3049fe"
+  Normal  Pulled          3m     kubelet, master01  Successfully pulled image "registry.access.redhat.com/rhscl/mysql-57-rhel7@sha256:9a781abe7581cc141e14a7e404ec34125b3e89c008b14f4e7b41e094fd3049fe"
+  Normal  Created         3m     kubelet, master01  Created container mysql-openshift
+  Normal  Started         3m     kubelet, master01  Started container mysql-openshift
+[student@workstation ~]$ oc get svc
+NAME              TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+mysql-openshift   ClusterIP   172.30.40.2   <none>        3306/TCP   3m36s
+[student@workstation ~]$ oc describe svc mysql-openshift
+Name:              mysql-openshift
+Namespace:         developer-mysql-openshift
+Labels:            app=mysql-openshift
+                   app.kubernetes.io/component=mysql-openshift
+                   app.kubernetes.io/instance=mysql-openshift
+Annotations:       openshift.io/generated-by: OpenShiftNewApp
+Selector:          deploymentconfig=mysql-openshift
+Type:              ClusterIP
+IP:                172.30.40.2
+Port:              3306-tcp  3306/TCP
+TargetPort:        3306/TCP
+Endpoints:         10.10.0.35:3306
+Session Affinity:  None
+Events:            <none>
+[student@workstation ~]$ oc get dc
+NAME              REVISION   DESIRED   CURRENT   TRIGGERED BY
+mysql-openshift   1          1         1         config,image(mysql-openshift:latest)
+[student@workstation ~]$ oc describe dc mysql-openshift
+Name:		mysql-openshift
+Namespace:	developer-mysql-openshift
+Created:	4 minutes ago
+Labels:		app=mysql-openshift
+		app.kubernetes.io/component=mysql-openshift
+		app.kubernetes.io/instance=mysql-openshift
+Annotations:	openshift.io/generated-by=OpenShiftNewApp
+Latest Version:	1
+Selector:	deploymentconfig=mysql-openshift
+Replicas:	1
+Triggers:	Config, Image(mysql-openshift@latest, auto=true)
+Strategy:	Rolling
+Template:
+Pod Template:
+  Labels:	deploymentconfig=mysql-openshift
+  Annotations:	openshift.io/generated-by: OpenShiftNewApp
+  Containers:
+   mysql-openshift:
+    Image:	registry.access.redhat.com/rhscl/mysql-57-rhel7@sha256:9a781abe7581cc141e14a7e404ec34125b3e89c008b14f4e7b41e094fd3049fe
+    Port:	3306/TCP
+    Host Port:	0/TCP
+    Environment:
+      MYSQL_DATABASE:		testdb
+      MYSQL_PASSWORD:		mypa55
+      MYSQL_ROOT_PASSWORD:	r00tpa55
+      MYSQL_USER:		user1
+    Mounts:			<none>
+  Volumes:			<none>
+
+Deployment #1 (latest):
+	Name:		mysql-openshift-1
+	Created:	4 minutes ago
+	Status:		Complete
+	Replicas:	1 current / 1 desired
+	Selector:	deployment=mysql-openshift-1,deploymentconfig=mysql-openshift
+	Labels:		app.kubernetes.io/component=mysql-openshift,app.kubernetes.io/instance=mysql-openshift,app=mysql-openshift,openshift.io/deployment-config.name=mysql-openshift
+	Pods Status:	1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+
+Events:
+  Type		Reason			Age	From				Message
+  ----		------			----	----				-------
+  Normal	DeploymentCreated	4m43s	deploymentconfig-controller	Created new replication controller "mysql-openshift-1" for version 1
+[student@workstation ~]$ [student@workstation ~]$ oc expose service mysql-openshift
+route.route.openshift.io/mysql-openshift exposed
+[student@workstation ~]$ oc get routes
+NAME              HOST/PORT                                                         PATH   SERVICES          PORT       TERMINATION   WILDCARD
+mysql-openshift   mysql-openshift-developer-mysql-openshift.apps.ocp4.example.com          mysql-openshift   3306-tcp                 None
+
+From the workstation machine, configure port forwarding between workstation
+and the database pod running on OpenShift using port 3306. The terminal will hang after executing the command.
+
+[student@workstation ~]$ oc port-forward mysql-openshift-1-7skrj 3306:3306
+Forwarding from 127.0.0.1:3306 -> 3306
+Forwarding from [::1]:3306 -> 3306
+
+From the workstation machine open another terminal and connect to the MySQL
+server using the MySQL client.
+
+[student@workstation ~]$ mysql -uuser1 -pmypa55 --protocol tcp -h localhost
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 2
+Server version: 5.7.24 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| testdb             |
++--------------------+
+2 rows in set (0.003 sec)
+
+MySQL [(none)]> exit
+Bye
+[student@workstation ~]$ [student@workstation ~]$ oc delete project developer-mysql-openshift
+project.project.openshift.io "developer-mysql-openshift" deleted
+[student@workstation ~]$ oc delete project developer-ysql-openshift
+project.project.openshift.io "developer-ysql-openshift" deleted
+[student@workstation ~]$ lab openshift-resources finish
+
+Completing the Guided Exercise: Deploying a Database Server on OpenShift
+
+ · Deleting the 'developer-mysql-openshift' project............  SUCCESS
+[student@workstation ~]$ 
+
+
+
+
+
+ 
