@@ -2003,7 +2003,19 @@ Completing the Guided Exercise: Exposing a Service as a Route
  · Removing OpenShift project 'developer-route'................  SUCCESS
 [student@workstation ~]$ 
 
+--------------------------------------------The Source-to-Image (S2I) Process------------------------------------------------------
 
+Source-to-Image (S2I) is a tool that makes it easy to build container images from application
+source code. This tool takes an application's source code from a Git repository, injects the source
+code into a base container based on the language and framework desired, and produces a new
+container image that runs the assembled application.
+
+Describing Image Streams
+-----------------------------
+OpenShift deploys new versions of user applications into pods quickly. To create a new application,
+in addition to the application source code, a base image (the S2I builder image) is required. If
+either of these two components gets updated, OpenShift creates a new container image. Pods
+created using the older container image are replaced by pods using the new image.
 
 
 
