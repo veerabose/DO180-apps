@@ -2812,6 +2812,22 @@ Storing signatures
 4e969766e68468f73ae207f58a80fa2c2aec9c0550c42aa60d6bcf628274dcfa
 [student@workstation nodejs]$ cd ~/DO180/labs/multicontainer-openshift
 [student@workstation multicontainer-openshift]$ cd deploy/nodejs
+[student@workstation multicontainer-openshift]$ cd ~/DO180/labs/multicontainer-openshift
+[student@workstation multicontainer-openshift]$ cd deploy/nodejs
+[student@workstation nodejs]$ cat build.sh 
+#!/bin/bash
+
+echo "Preparing build folder"
+rm -fr build
+mkdir -p build
+cp -ap nodejs-source/* build
+rm build/*.sh
+cp -p db.js build/models
+chmod -R a+rwX build
+
+source /usr/local/etc/ocp4.config
+sudo podman build --layers=false -t do180/todonodejs --build-arg NEXUS_BASE_URL=${RHT_OCP4_NEXUS_SERVER} .
+[student@workstation nodejs]$ 
 [student@workstation nodejs]$ ./build.sh
 Preparing build folder
 STEP 1: FROM do180-nodejs
