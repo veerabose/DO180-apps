@@ -2017,6 +2017,21 @@ in addition to the application source code, a base image (the S2I builder image)
 either of these two components gets updated, OpenShift creates a new container image. Pods
 created using the older container image are replaced by pods using the new image.
 
+[student@workstation ~]$ lab openshift-s2i start
+
+Setting up workstation for the Guided Excercise: Creating a Containerized Application with Source-to-Image
+
+ · Installing the tree command.................................  SUCCESS
+ Checking local clone of the applications repository:
+ · Folder '/home/student/DO180-apps' is a git repo.............  FAIL
+
+You do not seem to have a local clone of the applications repository.
+Perform the first guided exercise: "Configuring Your Classroom Environment" before starting this exercise.
+
+Cannot continue due to the previous errors.....................  FAIL
+
+[student@workstation ~]$ 
+
 
 
  
