@@ -2578,4 +2578,326 @@ container image that runs the assembled application.
 IP. While services allow for network access between pods inside an OpenShift instance, routes
 allow for network access to pods from users and applications outside the OpenShift instance.
 
+-------------------------------------------------------------CH-7-GE-Creating an Application with a Template---------------------------------------
+[student@workstation DO180-apps]$ lab multicontainer-openshift start
+
+Setting up workstation for the Guided Exercise: Creating an Application with a Template
+
+ · Checking podman configuration...............................  SUCCESS
+
+ Verifying the OpenShift cluster is running:
+ · Log in on OpenShift.........................................  SUCCESS
+ · Check the internal registry is up and running...............  SUCCESS
+ · Ensure template project does not exist......................  SUCCESS
+ · Initializing local container image storage..................  SUCCESS
+ · Setting up labs folder......................................  SUCCESS
+ · Setting up solutions folder.................................  SUCCESS
+ · Downloading starter project.................................  SUCCESS
+ · Downloading solution project................................  SUCCESS
+
+Setup successful. Please proceed with the exercise.
+
+
+[student@workstation DO180-apps]$ cd ~/DO180/labs/multicontainer-openshift/images/mysql
+[student@workstation mysql]$ cat Dockerfile 
+FROM rhscl/mysql-57-rhel7
+
+# MySQL image for DO180
+#
+# Volumes:
+#  * /var/lib/mysql/data - Datastore for MySQL
+#    /var/lib/mysql/init - Folder to load *.sql scripts
+# Environment:
+#  * $MYSQL_USER - Database user name
+#  * $MYSQL_PASSWORD - User's password
+#  * $MYSQL_DATABASE - Name of the database to create
+#  * $MYSQL_ROOT_PASSWORD (Optional) - Password for the 'root' MySQL account
+
+ADD root /
+[student@workstation mysql]$ sudo podman build -t do180-mysql-57-rhel7 .
+STEP 1: FROM rhscl/mysql-57-rhel7
+Getting image source signatures
+Copying blob 9f1840c3b3bd done
+Copying blob 1c9f515fc6ab done
+Copying blob 1d2c4ce43b78 done
+Copying blob f1e961fe4c51 done
+Copying config 60726b33a0 done
+Writing manifest to image destination
+Storing signatures
+STEP 2: ADD root /
+STEP 3: COMMIT do180-mysql-57-rhel7
+fd8443f23b0dc345d34f0e317132505434cab9dcac9ddae830faea17cc39dcd3
+[student@workstation mysql]$ source /usr/local/etc/ocp4.config
+[student@workstation mysql]$ sudo podman login quay.io -u ${RHT_OCP4_QUAY_USER}
+Password: 
+Login Succeeded!
+[student@workstation mysql]$ sudo podman tag do180-mysql-57-rhel7 quay.io/${RHT_OCP4_QUAY_USER}/do180-mysql-57-rhel7
+[student@workstation mysql]$ sudo podman push quay.io/${RHT_OCP4_QUAY_USER}/do180-mysql-57-rhel7
+Getting image source signatures
+Copying blob 64f2bd9f473b done
+Copying blob d5796cc2c59c done
+Copying blob 21eb863ed592 done
+Copying blob 682be05d59b2 done
+Copying blob 2cab4440f907 done
+Copying config fd8443f23b done
+Writing manifest to image destination
+Copying config fd8443f23b done
+Writing manifest to image destination
+Storing signatures
+[student@workstation mysql]$ cd ~/DO180/labs/multicontainer-openshift
+[student@workstation multicontainer-openshift]$ cd images/nodejs
+[student@workstation nodejs]$ cat Dockerfile 
+FROM    ubi7/ubi:7.7
+
+MAINTAINER username <username@example.com>
+
+ENV     NODEJS_VERSION=8.0 \
+        HOME=/opt/app-root/src
+
+RUN     yum install -y --setopt=tsflags=nodocs rh-nodejs8 make && \
+    	yum clean all -y && \
+		mkdir -p /opt/app-root && \
+  		groupadd -r appuser -f -g 1001 && \
+  		useradd -u 1001 -r -g appuser -m -d ${HOME} -s /sbin/nologin \
+            -c "Application User" appuser && \
+  		chown -R appuser:appuser /opt/app-root && \
+		chmod -R 755 /opt/app-root
+
+ADD	./enable-rh-nodejs8.sh /etc/profile.d/
+
+USER	appuser
+WORKDIR	${HOME}
+
+CMD	["echo", "You must create your own container from this one."]
+[student@workstation nodejs]$ sudo podman build --layers=false -t do180-nodejs .
+STEP 1: FROM ubi7/ubi:7.7
+Getting image source signatures
+Copying blob fcd63ccfdd0c done
+Copying blob 09dbbf8834d2 done
+Copying config 0355cd652b done
+Writing manifest to image destination
+Storing signatures
+STEP 2: MAINTAINER username <username@example.com>
+STEP 3: ENV     NODEJS_VERSION=8.0         HOME=/opt/app-root/src
+STEP 4: RUN     yum install -y --setopt=tsflags=nodocs rh-nodejs8 make &&     	yum clean all -y && 		mkdir -p /opt/app-root &&   		groupadd -r appuser -f -g 1001 &&   		useradd -u 1001 -r -g appuser -m -d ${HOME} -s /sbin/nologin             -c "Application User" appuser &&   		chown -R appuser:appuser /opt/app-root && 	chmod -R 755 /opt/app-root
+Loaded plugins: ovl, product-id, search-disabled-repos, subscription-manager
+This system is not receiving updates. You can use subscription-manager on the host to register and assign subscriptions.
+ubi-7                                                    | 3.8 kB     00:00     
+ubi-7-rhah                                               | 3.7 kB     00:00     
+ubi-7-server-devtools-rpms                               | 3.8 kB     00:00     
+ubi-7-server-extras-rpms                                 | 3.7 kB     00:00     
+ubi-7-server-optional-rpms                               | 3.8 kB     00:00     
+ubi-server-rhscl-7-rpms                                  | 3.8 kB     00:00     
+(1/18): ubi-7/x86_64/group                                 |  124 B   00:00     
+(2/18): ubi-7/x86_64/primary_db                            | 799 kB   00:00     
+(3/18): ubi-7/x86_64/updateinfo                            |   92 B   00:00     
+(4/18): ubi-7-rhah/x86_64/updateinfo                       |   92 B   00:00     
+(5/18): ubi-7-rhah/x86_64/primary_db                       | 2.5 kB   00:00     
+(6/18): ubi-7-rhah/x86_64/group                            |  124 B   00:00     
+(7/18): ubi-7-server-devtools-rpms/x86_64/group            |  124 B   00:00     
+(8/18): ubi-7-server-devtools-rpms/x86_64/updateinfo       |   92 B   00:00     
+(9/18): ubi-7-server-devtools-rpms/x86_64/primary_db       | 8.6 kB   00:00     
+(10/18): ubi-7-server-extras-rpms/x86_64/group             |  124 B   00:00     
+(11/18): ubi-7-server-extras-rpms/x86_64/primary_db        | 6.8 kB   00:00     
+(12/18): ubi-7-server-extras-rpms/x86_64/updateinfo        |   92 B   00:00     
+(13/18): ubi-7-server-optional-rpms/x86_64/group           |  124 B   00:00     
+(14/18): ubi-7-server-optional-rpms/x86_64/primary_db      |  14 kB   00:00     
+(15/18): ubi-7-server-optional-rpms/x86_64/updateinfo      |   92 B   00:00     
+(16/18): ubi-server-rhscl-7-rpms/x86_64/group              |  124 B   00:00     
+(17/18): ubi-server-rhscl-7-rpms/x86_64/primary_db         | 383 kB   00:00     
+(18/18): ubi-server-rhscl-7-rpms/x86_64/updateinfo         |   92 B   00:00     
+Resolving Dependencies
+--> Running transaction check
+---> Package make.x86_64 1:3.82-24.el7 will be installed
+---> Package rh-nodejs8.x86_64 0:3.0-5.el7 will be installed
+--> Processing Dependency: rh-nodejs8-nodejs for package: rh-nodejs8-3.0-5.el7.x86_64
+--> Processing Dependency: rh-nodejs8-npm for package: rh-nodejs8-3.0-5.el7.x86_64
+--> Processing Dependency: rh-nodejs8-runtime for package: rh-nodejs8-3.0-5.el7.x86_64
+--> Running transaction check
+---> Package rh-nodejs8-nodejs.x86_64 0:8.17.0-2.el7 will be installed
+---> Package rh-nodejs8-npm.x86_64 0:6.13.4-8.17.0.2.el7 will be installed
+---> Package rh-nodejs8-runtime.x86_64 0:3.0-5.el7 will be installed
+--> Processing Dependency: /usr/bin/scl_source for package: rh-nodejs8-runtime-3.0-5.el7.x86_64
+--> Running transaction check
+---> Package scl-utils.x86_64 0:20130529-19.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package            Arch   Version                Repository               Size
+================================================================================
+Installing:
+ make               x86_64 1:3.82-24.el7          ubi-7                   421 k
+ rh-nodejs8         x86_64 3.0-5.el7              ubi-server-rhscl-7-rpms 7.3 k
+Installing for dependencies:
+ rh-nodejs8-nodejs  x86_64 8.17.0-2.el7           ubi-server-rhscl-7-rpms 7.3 M
+ rh-nodejs8-npm     x86_64 6.13.4-8.17.0.2.el7    ubi-server-rhscl-7-rpms 4.8 M
+ rh-nodejs8-runtime x86_64 3.0-5.el7              ubi-server-rhscl-7-rpms 1.1 M
+ scl-utils          x86_64 20130529-19.el7        ubi-7                    24 k
+
+Transaction Summary
+================================================================================
+Install  2 Packages (+4 Dependent packages)
+
+Total download size: 14 M
+Installed size: 48 M
+Downloading packages:
+warning: /var/cache/yum/x86_64/7Server/ubi-server-rhscl-7-rpms/packages/rh-nodejs8-3.0-5.el7.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID fd431d51: NOKEY
+Public key for rh-nodejs8-3.0-5.el7.x86_64.rpm is not installed
+(1/6): rh-nodejs8-3.0-5.el7.x86_64.rpm                     | 7.3 kB   00:00     
+(2/6): rh-nodejs8-npm-6.13.4-8.17.0.2.el7.x86_64.rpm       | 4.8 MB   00:00     
+(3/6): rh-nodejs8-runtime-3.0-5.el7.x86_64.rpm             | 1.1 MB   00:00     
+(4/6): rh-nodejs8-nodejs-8.17.0-2.el7.x86_64.rpm           | 7.3 MB   00:00     
+Public key for make-3.82-24.el7.x86_64.rpm is not installed
+(5/6): make-3.82-24.el7.x86_64.rpm                         | 421 kB   00:00     
+(6/6): scl-utils-20130529-19.el7.x86_64.rpm                |  24 kB   00:00     
+--------------------------------------------------------------------------------
+Total                                               16 MB/s |  14 MB  00:00     
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+Importing GPG key 0xFD431D51:
+ Userid     : "Red Hat, Inc. (release key 2) <security@redhat.com>"
+ Fingerprint: 567e 347a d004 4ade 55ba 8a5f 199e 2f91 fd43 1d51
+ Package    : redhat-release-server-7.7-10.el7.x86_64 (@anaconda/7.7)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+Importing GPG key 0x2FA658E0:
+ Userid     : "Red Hat, Inc. (auxiliary key) <security@redhat.com>"
+ Fingerprint: 43a6 e49c 4a38 f4be 9abf 2a53 4568 9c88 2fa6 58e0
+ Package    : redhat-release-server-7.7-10.el7.x86_64 (@anaconda/7.7)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : scl-utils-20130529-19.el7.x86_64                             1/6 
+  Installing : rh-nodejs8-runtime-3.0-5.el7.x86_64                          2/6 
+  Installing : rh-nodejs8-npm-6.13.4-8.17.0.2.el7.x86_64                    3/6 
+  Installing : rh-nodejs8-nodejs-8.17.0-2.el7.x86_64                        4/6 
+  Installing : rh-nodejs8-3.0-5.el7.x86_64                                  5/6 
+  Installing : 1:make-3.82-24.el7.x86_64                                    6/6 
+  Verifying  : scl-utils-20130529-19.el7.x86_64                             1/6 
+  Verifying  : rh-nodejs8-3.0-5.el7.x86_64                                  2/6 
+  Verifying  : rh-nodejs8-npm-6.13.4-8.17.0.2.el7.x86_64                    3/6 
+  Verifying  : rh-nodejs8-nodejs-8.17.0-2.el7.x86_64                        4/6 
+  Verifying  : rh-nodejs8-runtime-3.0-5.el7.x86_64                          5/6 
+  Verifying  : 1:make-3.82-24.el7.x86_64                                    6/6 
+
+Installed:
+  make.x86_64 1:3.82-24.el7            rh-nodejs8.x86_64 0:3.0-5.el7           
+
+Dependency Installed:
+  rh-nodejs8-nodejs.x86_64 0:8.17.0-2.el7                                       
+  rh-nodejs8-npm.x86_64 0:6.13.4-8.17.0.2.el7                                   
+  rh-nodejs8-runtime.x86_64 0:3.0-5.el7                                         
+  scl-utils.x86_64 0:20130529-19.el7                                            
+
+Complete!
+Loaded plugins: ovl, product-id, search-disabled-repos, subscription-manager
+This system is not receiving updates. You can use subscription-manager on the host to register and assign subscriptions.
+Cleaning repos: ubi-7 ubi-7-rhah ubi-7-server-devtools-rpms
+              : ubi-7-server-extras-rpms ubi-7-server-optional-rpms
+              : ubi-server-rhscl-7-rpms
+STEP 5: ADD	./enable-rh-nodejs8.sh /etc/profile.d/
+STEP 6: USER	appuser
+STEP 7: WORKDIR	${HOME}
+STEP 8: CMD	["echo", "You must create your own container from this one."]
+STEP 9: COMMIT do180-nodejs
+Getting image source signatures
+Copying blob 5601485f0109 skipped: already exists
+Copying blob ac7577b8c383 skipped: already exists
+Copying blob 4e35e1f0fc90 done
+Copying config 4e969766e6 done
+Writing manifest to image destination
+Storing signatures
+4e969766e68468f73ae207f58a80fa2c2aec9c0550c42aa60d6bcf628274dcfa
+[student@workstation nodejs]$ cd ~/DO180/labs/multicontainer-openshift
+[student@workstation multicontainer-openshift]$ cd deploy/nodejs
+[student@workstation nodejs]$ ./build.sh
+Preparing build folder
+STEP 1: FROM do180-nodejs
+STEP 2: ARG NEXUS_BASE_URL
+STEP 3: MAINTAINER username <username@example.com>
+STEP 4: COPY run.sh build ${HOME}/
+STEP 5: RUN scl enable rh-nodejs8 'npm install --registry=http://$NEXUS_BASE_URL/repository/nodejs/'
+
+> dtrace-provider@0.8.8 install /opt/app-root/src/node_modules/dtrace-provider
+> node-gyp rebuild || node suppress-error.js
+
+make: Entering directory `/opt/app-root/src/node_modules/dtrace-provider/build'
+  TOUCH Release/obj.target/DTraceProviderStub.stamp
+make: Leaving directory `/opt/app-root/src/node_modules/dtrace-provider/build'
+npm notice created a lockfile as package-lock.json. You should commit this file.
+added 144 packages from 260 contributors in 39.293s
+
+7 packages are looking for funding
+  run `npm fund` for details
+
+STEP 6: EXPOSE	30080
+STEP 7: CMD	["scl","enable","rh-nodejs8","./run.sh"]
+STEP 8: COMMIT do180/todonodejs
+Getting image source signatures
+Copying blob 5601485f0109 skipped: already exists
+Copying blob ac7577b8c383 skipped: already exists
+Copying blob ebb16e449a93 skipped: already exists
+Copying blob 7a34f3a9f0ab done
+Copying config f66551df6c done
+Writing manifest to image destination
+Storing signatures
+f66551df6cfd50b004939a7285176d9eb334a62892d31316d9d87a391d63d723
+[student@workstation nodejs]$ sudo podman tag do180/todonodejs quay.io/${RHT_OCP4_QUAY_USER}/do180-todonodejs
+[student@workstation nodejs]$ sudo podman push quay.io/${RHT_OCP4_QUAY_USER}/do180-todonodejs
+Getting image source signatures
+Copying blob ebb16e449a93 done
+Copying blob ac7577b8c383 done
+Copying blob bbbd86d71663 done
+Copying blob 5601485f0109 done
+Copying config f66551df6c done
+Writing manifest to image destination
+Copying config f66551df6c done
+Writing manifest to image destination
+Storing signatures
+[student@workstation nodejs]$ oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+Login successful.
+
+You have one project on this server: "developer-mvn"
+
+Using project "developer-mvn".
+[student@workstation nodejs]$ oc delete project developer-mvn
+project.project.openshift.io "developer-mvn" deleted
+[student@workstation nodejs]$ oc new-project ${RHT_OCP4_DEV_USER}-template
+Now using project "developer-template" on server "https://api.ocp4.example.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app ruby~https://github.com/sclorg/ruby-ex.git
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=gcr.io/hello-minikube-zero-install/hello-node
+
+[student@workstation nodejs]$ vim /home/student/DO180/labs/multicontainer-openshift/todo-template.json
+[student@workstation nodejs]$ cd /home/student/DO180/labs/multicontainer-openshift
+[student@workstation multicontainer-openshift]$ oc process -f todo-template.json -p RHT_OCP4_QUAY_USER=${RHT_OCP4_QUAY_USER}  | oc create -f -
+pod/mysql created
+pod/todoapi created
+service/todoapi created
+service/mysql created
+persistentvolumeclaim/dbinit created
+persistentvolumeclaim/dbclaim created
+[student@workstation multicontainer-openshift]$ oc get pod -w
+NAME      READY   STATUS    RESTARTS   AGE
+mysql     1/1     Running   0          31s
+todoapi   1/1     Running   0          31s
+^C[student@workstation multicontainer-openshift]$ oc expose service todoapi
+route.route.openshift.io/todoapi exposed
+[student@workstation multicontainer-openshift]$ oc status | grep -o "http:.*com"
+http://todoapi-developer-template.apps.ocp4.example.com
+[student@workstation multicontainer-openshift]$ oc get pod -w
+NAME      READY   STATUS    RESTARTS   AGE
+mysql     1/1     Running   0          2m16s
+todoapi   1/1     Running   0          2m16s
+^C[student@workstation multicontainer-openshift]$ curl -w "\n" $(oc status | grep -o "http:.*com")/todo/api/items/1
+{"id":1,"description":"Pick up newspaper","done":false}
+[student@workstation multicontainer-openshift]$
+
 
