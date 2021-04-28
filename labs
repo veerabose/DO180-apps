@@ -2915,5 +2915,32 @@ todoapi   1/1     Running   0          2m16s
 ^C[student@workstation multicontainer-openshift]$ curl -w "\n" $(oc status | grep -o "http:.*com")/todo/api/items/1
 {"id":1,"description":"Pick up newspaper","done":false}
 [student@workstation multicontainer-openshift]$
+[student@workstation nodejs]$ oc get all
+NAME          READY   STATUS    RESTARTS   AGE
+pod/mysql     1/1     Running   0          21m
+pod/todoapi   1/1     Running   0          21m
+
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+service/mysql     ClusterIP   172.30.242.123   <none>        3306/TCP    21m
+service/todoapi   ClusterIP   172.30.36.180    <none>        30080/TCP   21m
+
+NAME                               HOST/PORT                                          PATH   SERVICES   PORT    TERMINATION   WILDCARD
+route.route.openshift.io/todoapi   todoapi-developer-template.apps.ocp4.example.com          todoapi    30080                 None
+[student@workstation nodejs]$
+[student@workstation nodejs]$ lab multicontainer-openshift finish
+
+Completing the Guided Exercise: Creating an Application with a Template
+
+ · Log in on OpenShift.........................................  SUCCESS
+ · Removing developer-template project.........................  SUCCESS
+ · Removing rhscl/mysql-57-rhel7 image.........................  SUCCESS
+ · Removing do180/mysql-57-rhel7 image.........................  SUCCESS
+ · Removing quay.io/veeraabose/do180-mysql-57-rhel7 image......  SUCCESS
+ · Removing localhost/do180-nodejs image.......................  SUCCESS
+ · Removing do180/todonodejs image.............................  SUCCESS
+ · Removing quay.io/veeraabose/do180-todonodejs image..........  SUCCESS
+ · Removing registry.access.redhat.com/ubi7/ubi:7.7 image......  SUCCESS
+[student@workstation nodejs]$ 
+
 
 
